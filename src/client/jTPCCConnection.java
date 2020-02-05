@@ -68,8 +68,7 @@ public class jTPCCConnection
 	stmtNewOrderSelectDist = dbConn.prepareStatement(
 		"SELECT d_tax, d_next_o_id " +
 		"    FROM bmsql_district " +
-		"    WHERE d_w_id = ? AND d_id = ? " +
-		"    FOR UPDATE");
+		"    WHERE d_w_id = ? AND d_id = ? ");
 	stmtNewOrderUpdateDist = dbConn.prepareStatement(
 		"UPDATE bmsql_district " +
 		"    SET d_next_o_id = d_next_o_id + 1 " +
@@ -89,8 +88,7 @@ public class jTPCCConnection
 		"       s_dist_05, s_dist_06, s_dist_07, s_dist_08, " +
 		"       s_dist_09, s_dist_10 " +
 		"    FROM bmsql_stock " +
-		"    WHERE s_w_id = ? AND s_i_id = ? " +
-		"    FOR UPDATE");
+		"    WHERE s_w_id = ? AND s_i_id = ? ");
 	stmtNewOrderSelectItem = dbConn.prepareStatement(
 		"SELECT i_price, i_name, i_data " +
 		"    FROM bmsql_item " +
@@ -129,8 +127,7 @@ public class jTPCCConnection
 		"       c_city, c_state, c_zip, c_phone, c_since, c_credit, " +
 		"       c_credit_lim, c_discount, c_balance " +
 		"    FROM bmsql_customer " +
-		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ? " +
-		"    FOR UPDATE");
+		"    WHERE c_w_id = ? AND c_d_id = ? AND c_id = ? ");
 	stmtPaymentSelectCustomerData = dbConn.prepareStatement(
 		"SELECT c_data " +
 		"    FROM bmsql_customer " +
@@ -233,8 +230,7 @@ public class jTPCCConnection
         "    FROM bmsql_new_order " +
         "    WHERE no_w_id = ? AND no_d_id = ? " +
         "    ORDER BY no_o_id ASC" +
-        "    LIMIT 1" +
-        "    FOR UPDATE");
+        "    LIMIT 1");
 	stmtDeliveryBGDeleteOldestNewOrder = dbConn.prepareStatement(
 		"DELETE FROM bmsql_new_order " +
 		"    WHERE no_w_id = ? AND no_d_id = ? AND no_o_id = ?");

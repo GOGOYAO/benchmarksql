@@ -161,6 +161,28 @@ public class LoadDataWorker implements Runnable
 	    );
     }
 
+    private void commitWithRetry(PreparedStatement stmt, String table_name) throws SQLException {
+       int retry_count = 1; 
+       while (true) {
+           try {
+               stmt.executeBatch();
+               dbConn.commit();
+               stmt.clearBatch();
+               break;
+           } catch (SQLException se) {
+               if (retry_count >= 20) throw se;
+               while (se != null) {
+                   fmt.format("table[%s] retry %03d, ERROR: %s", table_name, retry_count, se.getMessage());
+                   System.err.println(sb.toString());
+                   sb.setLength(0);
+                   se = se.getNextException();
+               }
+               retry_count++;
+               dbConn.rollback();
+           }
+       }
+    }
+
     /*
      * run()
      */
@@ -283,9 +305,7 @@ public class LoadDataWorker implements Runnable
 		}
 		else
 		{
-		    stmtItem.executeBatch();
-		    stmtItem.clearBatch();
-		    dbConn.commit();
+            commitWithRetry(stmtItem, "item");
 		}
 	    }
 
@@ -332,11 +352,8 @@ public class LoadDataWorker implements Runnable
 	}
 	else
 	{
-	    stmtItem.executeBatch();
-	    stmtItem.clearBatch();
+        commitWithRetry(stmtItem, "item");
 	    stmtItem.close();
-
-	    dbConn.commit();
 	}
 
     } // End loadItem()
@@ -398,9 +415,7 @@ public class LoadDataWorker implements Runnable
 		    LoadData.warehouseAppend(sbWarehouse);
 		else
 		{
-		    stmtStock.executeBatch();
-		    stmtStock.clearBatch();
-		    dbConn.commit();
+            commitWithRetry(stmtStock, "stock");
 		}
 	    }
 
@@ -471,9 +486,7 @@ public class LoadDataWorker implements Runnable
 	}
 	else
 	{
-	    stmtStock.executeBatch();
-	    stmtStock.clearBatch();
-	    dbConn.commit();
+        commitWithRetry(stmtStock, "stock");
 	}
 
 	/*
@@ -529,13 +542,8 @@ public class LoadDataWorker implements Runnable
 				}
 				else
 				{
-					stmtCustomer.executeBatch();
-					stmtCustomer.clearBatch();
-					dbConn.commit();
-
-					stmtHistory.executeBatch();
-					stmtHistory.clearBatch();
-					dbConn.commit();
+                    commitWithRetry(stmtCustomer, "customer");
+                    commitWithRetry(stmtHistory, "history");
 				}
 			}
 
@@ -638,12 +646,8 @@ public class LoadDataWorker implements Runnable
 	    }
 	    else
 	    {
-		stmtCustomer.executeBatch();
-		stmtCustomer.clearBatch();
-		dbConn.commit();
-		stmtHistory.executeBatch();
-		stmtHistory.clearBatch();
-		dbConn.commit();
+            commitWithRetry(stmtCustomer, "customer");
+            commitWithRetry(stmtHistory, "history");
 	    }
 
 	    /*
@@ -679,18 +683,10 @@ public class LoadDataWorker implements Runnable
 				}
 				else
 				{
-					stmtOrder.executeBatch();
-					stmtOrder.clearBatch();
-					dbConn.commit();
-
-					stmtOrderLine.executeBatch();
-					stmtOrderLine.clearBatch();
-					dbConn.commit();
-
-					stmtNewOrder.executeBatch();
-					stmtNewOrder.clearBatch();
-					dbConn.commit();
-				}
+                    commitWithRetry(stmtOrder, "order");
+                    commitWithRetry(stmtOrderLine, "order line");
+                    commitWithRetry(stmtNewOrder, "new order");
+                }
 			}
 
 		if (writeCSV)
@@ -798,16 +794,10 @@ public class LoadDataWorker implements Runnable
 	    }
 	    else
 	    {
-		stmtOrder.executeBatch();
-		stmtOrder.clearBatch();
-		dbConn.commit();
-		stmtOrderLine.executeBatch();
-		stmtOrderLine.clearBatch();
-		dbConn.commit();
-		stmtNewOrder.executeBatch();
-		stmtNewOrder.clearBatch();
-		dbConn.commit();
-	    }
+            commitWithRetry(stmtOrder, "order");
+            commitWithRetry(stmtOrderLine, "order line");
+            commitWithRetry(stmtNewOrder, "new order");
+        }
 	}
 
 	if (!writeCSV)
